@@ -1,16 +1,19 @@
+server:
+  port: 8080
+
 
 spring:
+  #  服务名称
   application:
     name: huizhi-gateway
+  # oauth
+  security.oauth2.resourceserver.jwt.jwk-set-uri: 'http://localhost:8081/.well-known/jwks.json'
   cloud:
     zookeeper:
       discovery:
         enabled: true
         register: true
       connect-string: 127.0.0.1:2181
-
-server:
-  port: 8080
 
 logging:
   level:
