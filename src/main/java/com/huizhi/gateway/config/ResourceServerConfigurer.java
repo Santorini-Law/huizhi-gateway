@@ -31,8 +31,6 @@ public class ResourceServerConfigurer {
         http.oauth2ResourceServer()
                 .jwt()
                 .jwtAuthenticationConverter(converter())
-//                .jwtDecoder(reactiveJwtDecoder())
-
         ;
         return http.build();
     }

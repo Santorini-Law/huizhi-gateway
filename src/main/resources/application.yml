@@ -1,7 +1,5 @@
 server:
   port: 8080
-
-
 spring:
   #  服务名称
   application:

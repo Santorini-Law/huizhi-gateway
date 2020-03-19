@@ -25,7 +25,6 @@ public class GatewayRoutes {
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://huizhi-user")
                 )
-
                 .build();
     }
 }
