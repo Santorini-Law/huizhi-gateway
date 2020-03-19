@@ -25,8 +25,7 @@ public class ResourceServerConfigurer {
 
         http.authorizeExchange()
                 .pathMatchers("/actuator/**").permitAll()
-                .pathMatchers("/admin/login/**").hasRole("admin")
-                .pathMatchers("/admin/**").hasRole("admin")
+                .pathMatchers("/admin/login/**", "/admin/**").hasRole("admin")
                 .anyExchange().authenticated();
 
         http.oauth2ResourceServer()
