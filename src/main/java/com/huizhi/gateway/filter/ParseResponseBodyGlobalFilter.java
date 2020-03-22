@@ -37,41 +37,36 @@ public class ParseResponseBodyGlobalFilter extends BaseGlobalFilter {
             @Override
             public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 
-
-                String originalResponseContentType = exchange
-                        .getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
+                String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
                 HttpHeaders httpHeaders = new HttpHeaders();
                 // explicitly add it in this way instead of
                 // 'httpHeaders.setContentType(originalResponseContentType)'
                 // this will prevent exception in case of using non-standard media
                 // types like "Content-Type: image"
-                httpHeaders.add(HttpHeaders.CONTENT_TYPE,
-                        originalResponseContentType);
+                httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
 
                 ClientResponse clientResponse = ClientResponse
                         .create(exchange.getResponse().getStatusCode())
                         .headers(headers -> headers.putAll(httpHeaders))
                         .body(Flux.from(body)).build();
 
-                // TODO: flux or mono
-                Mono modifiedBody = clientResponse.bodyToMono(String.class)
+                Mono<String> modifiedBody = clientResponse.bodyToMono(String.class)
                         .flatMap(originalBody -> {
                             exchange.getAttributes().put("response_body", originalBody);
                             return Mono.just(originalBody);
                         });
 
                 BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, String.class);
-                CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(
-                        exchange, exchange.getResponse().getHeaders());
+
+                CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getResponse().getHeaders());
+
                 return bodyInserter.insert(outputMessage, new BodyInserterContext())
                         .then(Mono.defer(() -> {
                             Flux<DataBuffer> messageBody = outputMessage.getBody();
                             HttpHeaders headers = getDelegate().getHeaders();
                             if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
-                                messageBody = messageBody.doOnNext(data -> headers
-                                        .setContentLength(data.readableByteCount()));
+                                messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
                             }
-                            // TODO: fail if isStreamingMediaType?
                             return getDelegate().writeWith(messageBody);
                         }));
             }
